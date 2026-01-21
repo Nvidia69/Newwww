@@ -1,0 +1,352 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>C.DEVS.CORP // CEO</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <style>
+        /* ========================================================================
+           CORE VARIABLES & ASSETS
+           ======================================================================== */
+        :root {
+            --primary-neon: #00f3ff;
+            --secondary-neon: #bc13fe;
+            --bg-dark: #050505;
+            --glass-panel: rgba(10, 15, 20, 0.75);
+            --border-color: rgba(0, 243, 255, 0.3);
+        }
+
+        /* ========================================================================
+           SPLASH SCREEN
+           ======================================================================== */
+        #overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: var(--bg-dark);
+            z-index: 10000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            cursor: pointer;
+            transition: opacity 0.8s ease;
+        }
+
+        #overlay .enter-text {
+            font-family: 'Share Tech Mono', monospace;
+            color: var(--primary-neon);
+            font-size: 20px;
+            letter-spacing: 5px;
+            text-transform: uppercase;
+        }
+
+        /* ========================================================================
+           GLOBAL RESET & TYPOGRAPHY
+           ======================================================================== */
+        * { margin: 0; padding: 0; box-sizing: border-box; cursor: none; }
+
+        body {
+            background-color: var(--bg-dark);
+            background-size: cover;
+            background-position: center;
+            color: var(--primary-neon);
+            font-family: 'Share Tech Mono', monospace;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            perspective: 1000px;
+        }
+
+        /* Container for the background images rendered by pic.js */
+        #dynamic-bg-container {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1;
+            opacity: 0.3; /* Adjusted for better legibility of the card */
+            pointer-events: none;
+        }
+        #dynamic-bg-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        #neural-canvas {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        body::after {
+            content: "";
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.15), rgba(0, 0, 0, 0.15) 1px, transparent 1px, transparent 2px);
+            pointer-events: none;
+            z-index: 999;
+        }
+
+        /* MOUSE CURSOR */
+        .cursor-dot, .cursor-circle {
+            position: fixed;
+            top: 0; left: 0;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            z-index: 9999;
+            pointer-events: none;
+        }
+        .cursor-dot { width: 5px; height: 5px; background: var(--primary-neon); }
+        .cursor-circle { 
+            width: 30px; height: 30px; 
+            border: 1px solid var(--primary-neon);
+            transition: width 0.2s, height 0.2s;
+        }
+
+        /* MAIN CARD */
+        .card-container {
+            position: relative;
+            z-index: 10;
+            width: 400px;
+            transform-style: preserve-3d;
+            transition: transform 0.1s ease-out;
+        }
+
+        .card {
+            background: var(--glass-panel);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-color);
+            padding: 40px;
+            text-align: center;
+            box-shadow: 0 0 20px rgba(0, 243, 255, 0.1), inset 0 0 20px rgba(0, 243, 255, 0.05);
+            clip-path: polygon(0% 0%, 100% 0%, 100% 90%, 92% 100%, 0% 100%);
+        }
+
+        .card::before {
+            content: "C.DEVS.CORP";
+            position: absolute;
+            top: 10px; right: 15px;
+            font-size: 10px;
+            opacity: 0.6;
+            letter-spacing: 2px;
+        }
+
+        .profile-img {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 20px;
+            border: 2px solid var(--primary-neon);
+            object-fit: cover;
+            filter: grayscale(100%) contrast(1.2);
+            transition: 0.5s;
+        }
+
+        .card:hover .profile-img { filter: grayscale(0%) contrast(1); }
+
+        h1.glitch { font-size: 28px; position: relative; color: #fff; text-transform: uppercase; letter-spacing: 3px; }
+        h1.glitch::before, h1.glitch::after {
+            content: attr(data-text); position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-dark);
+        }
+        h1.glitch::before { left: 2px; text-shadow: -1px 0 var(--secondary-neon); clip: rect(44px, 450px, 56px, 0); animation: glitch-anim 5s infinite linear alternate-reverse; }
+        h1.glitch::after { left: -2px; text-shadow: -1px 0 var(--primary-neon); clip: rect(44px, 450px, 56px, 0); animation: glitch-anim-2 5s infinite linear alternate-reverse; }
+
+        .role { font-size: 12px; color: var(--secondary-neon); margin-bottom: 20px; display: block; font-family: 'Fira Code', monospace; }
+        .tags { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; margin-bottom: 30px; }
+        .tag { font-size: 10px; border: 1px solid var(--primary-neon); padding: 4px 8px; background: rgba(0, 243, 255, 0.05); text-transform: uppercase; }
+
+        .links-stack { display: flex; flex-direction: column; gap: 12px; }
+        .cyber-btn {
+            background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); padding: 14px;
+            text-decoration: none; color: var(--primary-neon); font-size: 14px; font-weight: bold;
+            display: flex; justify-content: space-between; transition: 0.3s;
+        }
+        .cyber-btn:hover { background: rgba(0, 243, 255, 0.1); border-color: var(--primary-neon); padding-left: 20px; }
+
+        /* MUSIC PLAYER */
+        .music-player { margin-top: 30px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px; display: flex; align-items: center; gap: 10px; font-size: 10px; }
+        .equalizer { display: flex; gap: 2px; height: 15px; align-items: flex-end; }
+        .bar { width: 3px; background: var(--primary-neon); animation: bounce 1s infinite ease-in-out; animation-play-state: paused; }
+        @keyframes bounce { 0%, 100% { height: 2px; } 50% { height: 15px; } }
+
+        @keyframes glitch-anim { 0% { clip: rect(38px, 9999px, 81px, 0); } 100% { clip: rect(20px, 9999px, 70px, 0); } }
+        @keyframes glitch-anim-2 { 0% { clip: rect(10px, 9999px, 30px, 0); } 100% { clip: rect(50px, 9999px, 90px, 0); } }
+
+        @media (max-width: 600px) { .card-container { width: 95%; transform: none !important; } body { perspective: none; } }
+    </style>
+<script type="importmap">
+{
+  "imports": {
+    "react": "https://esm.sh/react@^19.2.3",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
+    "react/": "https://esm.sh/react@^19.2.3/"
+  }
+}
+</script>
+</head>
+<body>
+
+    <!-- Dynamic Background via pic.js -->
+    <div id="dynamic-bg-container">
+        <script src="pic.js"></script>
+    </div>
+
+    <div id="overlay">
+        <div class="enter-text glitch" data-text="[ ENTRAR ]">[ ENTRAR ]</div>
+        <p style="color:rgba(0,243,255,0.4); font-size:9px; margin-top:10px; letter-spacing:2px;">AUTENTICANDO CEO: CORLEONE</p>
+    </div>
+
+    <div class="cursor-dot"></div>
+    <div class="cursor-circle"></div>
+    <canvas id="neural-canvas"></canvas>
+
+    <div class="card-container" id="tilt-card">
+        <div class="card">
+            <div class="profile-wrapper">
+                <img src="" alt="User Avatar" class="profile-img" id="user-avatar">
+            </div>
+            <h1 class="glitch" id="user-name" data-text="LOADING...">LOADING...</h1>
+            <span class="role" id="user-role">...</span>
+            <div class="tags" id="tags-box"></div>
+            <div class="links-stack" id="links-box"></div>
+            <div class="music-player">
+                <div class="equalizer">
+                    <div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div>
+                </div>
+                <div style="text-align: left;">
+                    <div style="color:white; font-weight:bold;">NOW PLAYING</div>
+                    <div id="track-name" style="opacity:0.7;">System_Idle.mp3</div>
+                </div>
+                <button id="play-btn" style="margin-left:auto; background:none; border:1px solid var(--primary-neon); color:var(--primary-neon); padding:2px 8px; font-size:10px;">PLAY</button>
+            </div>
+            <audio id="audio-source" loop></audio>
+        </div>
+    </div>
+
+    <script>
+        const SYSTEM_CONFIG = {
+            profile: {
+                name: "Indian Government",
+                role: "HACKER // DEV // GAMER",
+                avatar: "https://i.pinimg.com/originals/e8/63/06/e863065d63f2530d979b90890696b015.gif"
+            },
+            tags: ["Python", "Html", "Gamer", "Panel Seller"],
+            links: [
+                 { label: "@ASWATHAMA", url: "https://discord.gg/kCfqbWDFUR" },
+                { label: "INSTAGRAM", url: "" },
+                { label: "PAINEL SELLER", url: " https://t.me/nvidia61" },
+                { label: "TELEGRAM", url: "https://t.me/nvidia61" }
+            ],
+            music: {
+                name: "LOUCURA LETAL",
+                url: "https://files.catbox.moe/dky8cn.mp3" 
+            }
+        };
+
+        // 1. INITIALIZATION
+        document.getElementById('user-name').innerText = SYSTEM_CONFIG.profile.name;
+        document.getElementById('user-name').setAttribute('data-text', SYSTEM_CONFIG.profile.name);
+        document.getElementById('user-role').innerText = `> ${SYSTEM_CONFIG.profile.role}`;
+        document.getElementById('user-avatar').src = SYSTEM_CONFIG.profile.avatar;
+        document.getElementById('track-name').innerText = SYSTEM_CONFIG.music.name;
+        document.getElementById('audio-source').src = SYSTEM_CONFIG.music.url;
+
+        const tagsContainer = document.getElementById('tags-box');
+        SYSTEM_CONFIG.tags.forEach(tag => { tagsContainer.innerHTML += `<span class="tag">[${tag}]</span>`; });
+
+        const linksContainer = document.getElementById('links-box');
+        SYSTEM_CONFIG.links.forEach(link => {
+            const a = document.createElement('a');
+            a.href = link.url; a.className = 'cyber-btn'; a.target = '_blank';
+            a.innerHTML = `<span class="hacker-text" data-value="${link.label}">${link.label}</span> <span>➜</span>`;
+            linksContainer.appendChild(a);
+            a.addEventListener('mouseenter', event => {
+                const target = event.currentTarget.querySelector('.hacker-text');
+                let it = 0;
+                const iv = setInterval(() => {
+                    target.innerText = target.innerText.split("").map((l, i) => {
+                        if(i < it) return target.dataset.value[i];
+                        return "ABCDEF12345!@#$"[Math.floor(Math.random() * 15)];
+                    }).join("");
+                    if(it >= target.dataset.value.length) clearInterval(iv);
+                    it += 1/3;
+                }, 30);
+            });
+        });
+
+        // 2. AUDIO LOGIC & OVERLAY
+        const audio = document.getElementById('audio-source');
+        const overlay = document.getElementById('overlay');
+        const playBtn = document.getElementById('play-btn');
+
+        overlay.addEventListener('click', () => {
+            overlay.style.opacity = '0';
+            setTimeout(() => overlay.style.display = 'none', 800);
+            audio.play().catch(e => console.log("Audio play deferred till interaction"));
+            playBtn.innerText = "PAUSE";
+            document.querySelectorAll('.bar').forEach(b => b.style.animationPlayState = 'running');
+        });
+
+        playBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if(audio.paused) { audio.play(); playBtn.innerText = "PAUSE"; document.querySelectorAll('.bar').forEach(b => b.style.animationPlayState = 'running'); }
+            else { audio.pause(); playBtn.innerText = "PLAY"; document.querySelectorAll('.bar').forEach(b => b.style.animationPlayState = 'paused'); }
+        });
+
+        // 3. MOUSE & PARTICULAS (KEPT FROM YOUR CODE)
+        const card = document.getElementById('tilt-card');
+        document.addEventListener('mousemove', (e) => {
+            if(window.innerWidth < 600) return;
+            const xAxis = (window.innerWidth / 2 - e.pageX) / 25;
+            const yAxis = (window.innerHeight / 2 - e.pageY) / 25;
+            card.style.transform = `rotateY(${xAxis}deg) rotateX(${yAxis}deg)`;
+            document.querySelector('.cursor-dot').style.left = e.clientX + 'px';
+            document.querySelector('.cursor-dot').style.top = e.clientY + 'px';
+            setTimeout(() => {
+                document.querySelector('.cursor-circle').style.left = e.clientX + 'px';
+                document.querySelector('.cursor-circle').style.top = e.clientY + 'px';
+            }, 50);
+        });
+
+        const canvas = document.getElementById('neural-canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+        let pArr = [];
+        class Part {
+            constructor() {
+                this.x = Math.random()*canvas.width; this.y = Math.random()*canvas.height;
+                this.sx = Math.random()*1.5-0.75; this.sy = Math.random()*1.5-0.75;
+            }
+            up() {
+                this.x+=this.sx; this.y+=this.sy;
+                if(this.x>canvas.width||this.x<0) this.sx*=-1;
+                if(this.y>canvas.height||this.y<0) this.sy*=-1;
+            }
+            dr() { ctx.fillStyle='#00f3ff'; ctx.beginPath(); ctx.arc(this.x,this.y,1,0,Math.PI*2); ctx.fill(); }
+        }
+        function init() { pArr=[]; for(let i=0; i<(canvas.width*canvas.height/9000); i++) pArr.push(new Part()); }
+        function anim() {
+            ctx.clearRect(0,0,canvas.width,canvas.height);
+            pArr.forEach(p => { p.up(); p.dr(); });
+            for(let i=0; i<pArr.length; i++) {
+                for(let j=i; j<pArr.length; j++) {
+                    let d = ((pArr[i].x-pArr[j].x)**2)+((pArr[i].y-pArr[j].y)**2);
+                    if(d<(canvas.width/7)*(canvas.height/7)) {
+                        ctx.strokeStyle=`rgba(0,243,255,${1-(d/20000)})`; ctx.lineWidth=1;
+                        ctx.beginPath(); ctx.moveTo(pArr[i].x,pArr[i].y); ctx.lineTo(pArr[j].x,pArr[j].y); ctx.stroke();
+                    }
+                }
+            }
+            requestAnimationFrame(anim);
+        }
+        init(); anim();
+        window.addEventListener('resize', () => { canvas.width=window.innerWidth; canvas.height=window.innerHeight; init(); });
+    </script>
+    <div id="root"></div>
+    <script type="module" src="index.tsx"></script>
+</body>
+</html>
